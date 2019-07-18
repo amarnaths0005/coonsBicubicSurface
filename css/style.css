@@ -1,0 +1,58 @@
+.container {
+    display: grid;
+    grid-template-columns:3fr 7fr;
+}
+
+#leftPanel {
+    background: #330066;
+}
+
+* {
+    font-family: Arial, Verdana, sans-serif;
+    color: whitesmoke;
+    text-align: center;
+}
+
+.tablink {
+    background-color: #330066;
+    color: whitesmoke;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 2px 2px;
+    font-size: 17px;
+    width: 25%;
+}
+
+#corners {
+    background-color: #111111;
+}
+
+#utangents {
+    background-color: #222222;
+}
+
+#wtangents {
+    background-color: #333333;
+}
+
+#uwtwists {
+    background-color: #161616
+}
+
+.pointRed {
+    color: red;
+}
+
+.pointGreen {
+    color: green;
+}
+
+.pointBlue{
+    color: blue;
+}
+
+.pointYellow {
+    color: yellow;
+}
