@@ -30,6 +30,6 @@ Requirements:
    9. All user input should be via sliders.
    10. Should use WebGL, in the form of three.js. 
 
-    Tested on Chrome, Firefox and Edge, on Windows.
+Tested on Chrome, Firefox and Edge, on Windows.
     
-    ![Screenshot of CoonsBicubicSurface](https://github.com/amarnaths0005/coonsBicubicSurface/blob/master/coons.png)
+![Screenshot of CoonsBicubicSurface](https://github.com/amarnaths0005/coonsBicubicSurface/blob/master/coons.png)
