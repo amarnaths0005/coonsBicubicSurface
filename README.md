@@ -31,5 +31,7 @@ Requirements:
    10. Should use WebGL, in the form of three.js. 
 
 Tested on Chrome, Firefox and Edge, on Windows.
+
+Screenshot
     
 ![Screenshot of CoonsBicubicSurface](https://github.com/amarnaths0005/coonsBicubicSurface/blob/master/coons.png)
