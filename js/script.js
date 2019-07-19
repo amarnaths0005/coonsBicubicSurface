@@ -534,7 +534,7 @@ function init() {
 
     // White directional light at 0.65 intensity shining from the top.
     let directionalLight = new THREE.DirectionalLight(0xffffff, 0.65);
-    scene.add(directionalLight)
+    scene.add(directionalLight);
 
     setupCubePoints();
     //setupBoundaryPoints();
