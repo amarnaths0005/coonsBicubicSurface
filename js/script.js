@@ -935,7 +935,7 @@ function handleCameraAngle() {
 }
 
 function onResize() {
-    width = 4 * window.innerWidth / 5;
+    width = 7 * window.innerWidth / 10;
     camera.aspect = width / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(width, window.innerHeight);
