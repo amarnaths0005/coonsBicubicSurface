@@ -32,6 +32,8 @@ Requirements:
 
 Tested on Chrome, Firefox and Edge, on Windows.
 
+Open the file <i>index.html</i> in your browser.
+
 Please send feedback to amarnaths.codeproject@gmail.com
 
 Screenshot
