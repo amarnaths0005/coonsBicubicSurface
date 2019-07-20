@@ -593,6 +593,7 @@ function openPage(pageName, elmnt, color) {
     }
     document.getElementById(pageName).style.display = "block";
     elmnt.style.backgroundColor = color;
+    let pageCurrent;
 
     if (pageName === 'corners') {
         pageCurrent = 'corners';
