@@ -32,6 +32,8 @@ Requirements:
 
 Tested on Chrome, Firefox and Edge, on Windows.
 
+Please send feedback to amarnaths.codeproject@gmail.com
+
 Screenshot
     
 ![Screenshot of CoonsBicubicSurface](https://github.com/amarnaths0005/coonsBicubicSurface/blob/master/coons.png)
