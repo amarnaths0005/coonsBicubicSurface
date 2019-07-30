@@ -34,7 +34,7 @@
     Tested on Chrome, Firefox and Edge, on Windows.
  */
 
-'option strict'
+'use strict'
 
 let p1x, p1y, p1z, p2x, p2y, p2z, p3x, p3y, p3z, p4x, p4y, p4z;
 let p1ux, p1uy, p1uz, p2ux, p2uy, p2uz, p3ux, p3uy, p3uz, p4ux, p4uy, p4uz;
@@ -65,7 +65,7 @@ let points = [];
 let spheres = [];
 let surfacePoints = [];
 let noDivisions = 40;
-let step;
+let step, width;
 let surfaceMesh, lineWire;
 let wireCheck;
 let uVal, wVal;
@@ -82,7 +82,6 @@ function init() {
     renderer = new THREE.WebGLRenderer();
 
     window.addEventListener('resize', onResize, false);
-
     wireCheck = document.getElementById("wireframe");
     wireCheck.addEventListener("click", handleWireframe, false);
 
@@ -536,14 +535,11 @@ function init() {
     let directionalLight = new THREE.DirectionalLight(0xffffff, 0.65);
     scene.add(directionalLight);
 
-    setupCubePoints();
-    //setupBoundaryPoints();
     setupWireframeBox();
     handleCameraAngle();
     handleUWValue();
 
     document.getElementById("defaultOpen").click();
-
     document.getElementById("webglOp").appendChild(renderer.domElement);
 
     animate();
@@ -664,14 +660,32 @@ function setupFourPoints() {
     scene.add(point4);
 }
 
-// Note: There is duplication of code between this function and computeCoonsBicubicSurface(), 
-// where the coordinates of the point on the surface are computed. I can attempt to refactor the 
-// code and move all these to a single function. I prefer to retain it like this for now. 
 function handleUWValue() {
     scene.remove(pointUW);
 
     uVal = parseFloat(uRange.value);
     wVal = parseFloat(wRange.value);
+    let pt = computePointOnSurface(wVal, uVal);
+    let sphereGeometry = new THREE.SphereGeometry(.02, 20, 20);
+    let sphereMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        wireframe: false
+    });
+    pointUW = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    pointUW.position.x = pt.xVal;
+    pointUW.position.y = pt.yVal;
+    pointUW.position.z = pt.zVal;
+
+    scene.add(pointUW);
+}
+
+// This is where all the magic happens. These formulas, taken from the section 
+// on Coons Bicubic Surface from the book by Rogers and Adams, "Mathematical Elements
+// for Computer Graphics", do the calculations to get the physical coordinates of the 
+// point in space characterized by any value of u or w (both in the range [0,1]). 
+// These points are then added to the mesh as vertices, and then the triangles formed 
+// from these points, are added to the mesh as faces.  
+function computePointOnSurface(uVal, wVal) {
     let u2, u3, w2, w3;
     let f1u, f2u, f3u, f4u, f1w, f2w, f3w, f4w;
     let valueX, valueY, valueZ;
@@ -679,16 +693,14 @@ function handleUWValue() {
     let valy1, valy2, valy3, valy4;
     let valz1, valz2, valz3, valz4;
 
-    u2 = uVal * uVal;
-    u3 = u2 * uVal;
     w2 = wVal * wVal;
     w3 = w2 * wVal;
-
     f1w = 2.0 * w3 - 3 * w2 + 1.0;
     f2w = -2.0 * w3 + 3.0 * w2;
     f3w = w3 - 2.0 * w2 + wVal;
     f4w = w3 - w2;
-
+    u2 = uVal * uVal;
+    u3 = u2 * uVal;
     f1u = 2.0 * u3 - 3 * u2 + 1.0;
     f2u = -2.0 * u3 + 3.0 * u2;
     f3u = u3 - 2.0 * u2 + uVal;
@@ -712,73 +724,25 @@ function handleUWValue() {
     valz4 = f4u * (p3uz * f1w + p4uz * f2w + p3uwz * f3w + p4uwz * f4w);
     valueZ = valz1 + valz2 + valz3 + valz4;
 
-    let sphereGeometry = new THREE.SphereGeometry(.02, 20, 20);
-    let sphereMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        wireframe: false
-    });
-    pointUW = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    pointUW.position.x = valueX;
-    pointUW.position.y = valueY;
-    pointUW.position.z = valueZ;
-
-    scene.add(pointUW);
+    return {
+        xVal: valueX,
+        yVal: valueY,
+        zVal: valueZ
+    };
 }
 
 function computeCoonsBicubicSurface() {
     setupFourPoints();
     surfacePoints.length = 0;
-    let uVal, wVal, u2, u3, w2, w3;
-    let f1u, f2u, f3u, f4u, f1w, f2w, f3w, f4w;
-    let valueX, valueY, valueZ;
-    let valx1, valx2, valx3, valx4;
-    let valy1, valy2, valy3, valy4;
-    let valz1, valz2, valz3, valz4;
-
-    /* This is where all the magic happens. These formulas, taken from the section 
-    on Coons Bicubic Surface from the book by Rogers and Adams, "Mathematical Elements
-    of Computer Graphics", do the calculations to get the physical coordinates of the 
-    point in space characterized by any value of u or v (both in the range [0,1]). 
-    These points are then added to the mesh as vertices, and then the triangles formed 
-    from these points, are added to the mesh as faces.    */
+    let uVal, wVal;
 
     for (let j = 0; j <= noDivisions; ++j) {
         wVal = j * step;
-        w2 = wVal * wVal;
-        w3 = w2 * wVal;
-        f1w = 2.0 * w3 - 3 * w2 + 1.0;
-        f2w = -2.0 * w3 + 3.0 * w2;
-        f3w = w3 - 2.0 * w2 + wVal;
-        f4w = w3 - w2;
 
         for (let i = 0; i <= noDivisions; ++i) {
             uVal = i * step;
-            u2 = uVal * uVal;
-            u3 = u2 * uVal;
-            f1u = 2.0 * u3 - 3 * u2 + 1.0;
-            f2u = -2.0 * u3 + 3.0 * u2;
-            f3u = u3 - 2.0 * u2 + uVal;
-            f4u = u3 - u2;
-
-            valx1 = f1u * (p1x * f1w + p2x * f2w + p1wx * f3w + p2wx * f4w);
-            valx2 = f2u * (p3x * f1w + p4x * f2w + p3wx * f3w + p4wx * f4w);
-            valx3 = f3u * (p1ux * f1w + p2ux * f2w + p1uwx * f3w + p2uwx * f4w);
-            valx4 = f4u * (p3ux * f1w + p4ux * f2w + p3uwx * f3w + p4uwx * f4w);
-            valueX = valx1 + valx2 + valx3 + valx4;
-
-            valy1 = f1u * (p1y * f1w + p2y * f2w + p1wy * f3w + p2wy * f4w);
-            valy2 = f2u * (p3y * f1w + p4y * f2w + p3wy * f3w + p4wy * f4w);
-            valy3 = f3u * (p1uy * f1w + p2uy * f2w + p1uwy * f3w + p2uwy * f4w);
-            valy4 = f4u * (p3uy * f1w + p4uy * f2w + p3uwy * f3w + p4uwy * f4w);
-            valueY = valy1 + valy2 + valy3 + valy4;
-
-            valz1 = f1u * (p1z * f1w + p2z * f2w + p1wz * f3w + p2wz * f4w);
-            valz2 = f2u * (p3z * f1w + p4z * f2w + p3wz * f3w + p4wz * f4w);
-            valz3 = f3u * (p1uz * f1w + p2uz * f2w + p1uwz * f3w + p2uwz * f4w);
-            valz4 = f4u * (p3uz * f1w + p4uz * f2w + p3uwz * f3w + p4uwz * f4w);
-            valueZ = valz1 + valz2 + valz3 + valz4;
-
-            let poi = new THREE.Vector3(valueX, valueY, valueZ);
+            let pt = computePointOnSurface(wVal, uVal);
+            let poi = new THREE.Vector3(pt.xVal, pt.yVal, pt.zVal);
             surfacePoints.push(poi);
         }
     }
@@ -835,48 +799,8 @@ function renderCoonsBicubicSurface() {
     render();
 }
 
-function setupCubePoints() {
-    let pt = new THREE.Vector3(halfCubeSide, -halfCubeSide, halfCubeSide); // Point A
-    points.push(pt);
-    pt = new THREE.Vector3(halfCubeSide, -halfCubeSide, -halfCubeSide); // Point B
-    points.push(pt);
-    pt = new THREE.Vector3(-halfCubeSide, -halfCubeSide, -halfCubeSide); // Point C
-    points.push(pt);
-    pt = new THREE.Vector3(-halfCubeSide, -halfCubeSide, halfCubeSide); // Point D
-    points.push(pt);
-    pt = new THREE.Vector3(halfCubeSide, halfCubeSide, halfCubeSide); // Point E
-    points.push(pt);
-    pt = new THREE.Vector3(halfCubeSide, halfCubeSide, -halfCubeSide); // Point F
-    points.push(pt);
-    pt = new THREE.Vector3(-halfCubeSide, halfCubeSide, -halfCubeSide); // Point G
-    points.push(pt);
-    pt = new THREE.Vector3(-halfCubeSide, halfCubeSide, halfCubeSide); // Point H
-    points.push(pt);
-    pt = new THREE.Vector3(0, 0, 0); // Point O
-    points.push(pt);
-}
-
-function setupBoundaryPoints() {
-    let sphereGeometry = new THREE.SphereGeometry(.02, 20, 20);
-    let sphereMaterial = new THREE.MeshBasicMaterial({
-        color: 0x7777FF,
-        wireframe: false
-    });
-
-    for (let i = 0; i < points.length; ++i) {
-        let sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-        sphere.position.x = points[i].x;
-        sphere.position.y = points[i].y;
-        sphere.position.z = points[i].z;
-        spheres.push(sphere);
-    }
-
-    for (let i = 0; i < spheres.length; ++i) {
-        scene.add(spheres[i]);
-    }
-}
-
 function setupWireframeBox() {
+    let line1, line2, line3, line4, line5, line6;
     let material = new THREE.LineBasicMaterial({ color: 0x0000ff });
     let geometry1 = new THREE.Geometry();
     geometry1.vertices.push(new THREE.Vector3(halfCubeSide, -halfCubeSide, halfCubeSide));
