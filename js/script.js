@@ -665,7 +665,7 @@ function handleUWValue() {
 
     uVal = parseFloat(uRange.value);
     wVal = parseFloat(wRange.value);
-    let pt = computePointOnSurface(wVal, uVal);
+    let pt = computePointOnSurface(uVal, wVal);
     let sphereGeometry = new THREE.SphereGeometry(.02, 20, 20);
     let sphereMaterial = new THREE.MeshBasicMaterial({
         color: 0xffffff,
@@ -741,7 +741,7 @@ function computeCoonsBicubicSurface() {
 
         for (let i = 0; i <= noDivisions; ++i) {
             uVal = i * step;
-            let pt = computePointOnSurface(wVal, uVal);
+            let pt = computePointOnSurface(uVal, wVal);
             let poi = new THREE.Vector3(pt.xVal, pt.yVal, pt.zVal);
             surfacePoints.push(poi);
         }
